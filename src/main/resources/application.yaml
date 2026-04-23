@@ -1,3 +1,45 @@
+server:
+  port: 8080
+
 spring:
   application:
-    name: alertsGrafana
+    name: observability-demo
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics, loggers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 500ms, 1s
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+info:
+  app:
+    name: ${spring.application.name}
+    version: 0.0.1
+    description: "SRE Observability Demo"
+
+# Custom app properties
+app:
+  slow-endpoint:
+    delay-ms: 2000          # задержка для /api/slow
+  error-endpoint:
+    error-rate: 0.5         # вероятность 500 на /api/flaky (0.0–1.0)
