@@ -5,7 +5,7 @@ services:
   # Spring Boot app (build locally)
   app:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     container_name: observability-app
     ports:
