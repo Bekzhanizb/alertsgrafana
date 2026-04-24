@@ -29,7 +29,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class DemoController {
+public class ApiController {
 
     private final OrderService orderService;
 
