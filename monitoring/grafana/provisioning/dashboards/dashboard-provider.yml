@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: sre-dashboard
+    orgId: 1
+    folder: SRE
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 15
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/provisioning/dashboards
+

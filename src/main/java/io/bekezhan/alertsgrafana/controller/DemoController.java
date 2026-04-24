@@ -6,7 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.Map;
@@ -98,6 +103,25 @@ public class DemoController {
                 "status", "OK",
                 "message", "Lucky! No error this time."
         ));
+    }
+
+    @Timed(value = "api.stress.cpu", description = "CPU stress endpoint for alert testing")
+    @GetMapping("/stress/cpu")
+    public ResponseEntity<Map<String, Object>> stressCpu(
+            @RequestParam(defaultValue = "20") int seconds
+    ) {
+        log.warn("GET /api/stress/cpu — generating CPU load for {} seconds", seconds);
+        return ResponseEntity.ok(orderService.simulateCpuLoad(seconds));
+    }
+
+    @Timed(value = "api.stress.memory", description = "Memory stress endpoint for alert testing")
+    @GetMapping("/stress/memory")
+    public ResponseEntity<Map<String, Object>> stressMemory(
+            @RequestParam(defaultValue = "96") int mb,
+            @RequestParam(defaultValue = "30") int holdSeconds
+    ) throws InterruptedException {
+        log.warn("GET /api/stress/memory — allocating {} MB for {} seconds", mb, holdSeconds);
+        return ResponseEntity.ok(orderService.simulateMemoryPressure(mb, holdSeconds));
     }
 
     // Exception handler — ensures 5xx still get recorded by Micrometer

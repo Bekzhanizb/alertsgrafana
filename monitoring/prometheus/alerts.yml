@@ -1,0 +1,72 @@
+groups:
+  - name: observability-demo.rules
+    rules:
+      - alert: InstanceDown
+        expr: up{job="observability-demo"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: observability-demo
+        annotations:
+          summary: "Application instance is down"
+          description: "Prometheus cannot scrape the Spring Boot service for more than 1 minute."
+          runbook: "Check container status, app logs, and /actuator/health."
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{job="observability-demo",status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{job="observability-demo"}[5m]))
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: critical
+          service: observability-demo
+        annotations:
+          summary: "High 5xx error rate"
+          description: "5xx responses exceed 10% over a 5 minute window."
+          runbook: "Check /api/flaky load, recent deployments, and application logs."
+
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket{job="observability-demo"}[5m]))
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          service: observability-demo
+        annotations:
+          summary: "High p95 latency"
+          description: "p95 latency is above 1 second for 5 minutes."
+          runbook: "Check /api/slow traffic, thread usage, and container resources."
+
+      - alert: HighCpuUsage
+        expr: process_cpu_usage{job="observability-demo"} > 0.80
+        for: 3m
+        labels:
+          severity: warning
+          service: observability-demo
+        annotations:
+          summary: "High CPU usage"
+          description: "Application process CPU usage is above 80% for 3 minutes."
+          runbook: "Inspect CPU stress traffic, hot endpoints, and JVM thread dump if needed."
+
+      - alert: HighJvmMemoryUsage
+        expr: |
+          (
+            sum(jvm_memory_used_bytes{job="observability-demo",area="heap"})
+            /
+            sum(jvm_memory_max_bytes{job="observability-demo",area="heap"})
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: observability-demo
+        annotations:
+          summary: "High JVM heap usage"
+          description: "Heap utilization is above 85% for 5 minutes."
+          runbook: "Inspect heap growth, memory stress test traffic, and GC behavior."
+

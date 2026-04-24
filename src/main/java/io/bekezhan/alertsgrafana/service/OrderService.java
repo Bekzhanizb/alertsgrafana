@@ -81,4 +81,40 @@ public class OrderService {
     public void updateActiveUsers() {
         metrics.setActiveUsers(random.nextInt(50) + 1);
     }
+
+    /**
+     * Keeps the process busy long enough to trigger CPU-related alerts during a demo.
+     */
+    public Map<String, Object> simulateCpuLoad(int durationSeconds) {
+        long endTime = System.nanoTime() + durationSeconds * 1_000_000_000L;
+        long iterations = 0L;
+
+        while (System.nanoTime() < endTime) {
+            iterations += Math.sqrt(iterations + 1) > 0 ? 1 : 0;
+        }
+
+        return Map.of(
+                "status", "OK",
+                "message", "CPU stress completed",
+                "durationSeconds", durationSeconds,
+                "iterations", iterations
+        );
+    }
+
+    /**
+     * Allocates heap memory and keeps the allocation alive briefly to exercise JVM memory alerts.
+     */
+    public Map<String, Object> simulateMemoryPressure(int megabytes, int holdSeconds) throws InterruptedException {
+        byte[] payload = new byte[megabytes * 1024 * 1024];
+        payload[0] = 1;
+        Thread.sleep(holdSeconds * 1000L);
+
+        return Map.of(
+                "status", "OK",
+                "message", "Memory pressure completed",
+                "allocatedMb", megabytes,
+                "holdSeconds", holdSeconds,
+                "checksum", payload[0]
+        );
+    }
 }
